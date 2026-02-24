@@ -1,0 +1,13 @@
+services:
+  taschengeld:
+    image: ghcr.io/ahouben/taschengeld:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      ADMIN_PASSWORD: change-me
+      SESSION_SECRET: change-me-to-a-long-random-string
+      DATABASE_PATH: /data/database.sqlite
+    volumes:
+      - ./data:/data
