@@ -5,3 +5,8 @@
 # React Router
 /.react-router/
 /build/
+
+# Datenbank
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
