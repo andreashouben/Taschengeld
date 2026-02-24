@@ -1,9 +1,9 @@
-import { desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Form, Link, useActionData, useLoaderData } from "react-router";
 import { isParent, requireParent } from "~/lib/auth";
 import { db } from "~/db/index";
 import { children, transactions } from "~/db/schema";
-import { calculateBalance } from "~/lib/balance";
+import { calculateBalance, generateRateEntries } from "~/lib/balance";
 
 export async function loader({ params, request }: { params: { id: string }; request: Request; context: unknown }) {
   const id = Number(params.id);
@@ -17,10 +17,13 @@ export async function loader({ params, request }: { params: { id: string }; requ
     .select()
     .from(transactions)
     .where(eq(transactions.childId, id))
-    .orderBy(desc(transactions.createdAt))
     .all();
 
-  return Response.json({ child, transactions: childTransactions, isParent: await isParent(request) });
+  const allEntries = [...childTransactions, ...generateRateEntries(child)].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  return Response.json({ child, transactions: allEntries, isParent: await isParent(request) });
 }
 
 export async function action({ params, request }: { params: { id: string }; request: Request; context: unknown }) {

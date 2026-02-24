@@ -2,6 +2,40 @@ import type { Child, Transaction } from "~/db/schema";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+export interface RateEntry {
+  id: string;
+  childId: number;
+  amount: number;
+  note: "Taschengeld 💰";
+  createdAt: string;
+}
+
+export function generateRateEntries(child: Child): RateEntry[] {
+  const start = new Date(child.startDate);
+  const now = new Date();
+
+  let daysToFirst = (child.payoutDay - start.getDay() + 7) % 7;
+  if (daysToFirst === 0) daysToFirst = 7;
+
+  const entries: RateEntry[] = [];
+  let payoutDate = new Date(start.getTime() + daysToFirst * MS_PER_DAY);
+  let i = 1;
+
+  while (payoutDate <= now) {
+    entries.push({
+      id: `rate-${i}`,
+      childId: child.id,
+      amount: child.weeklyRate,
+      note: "Taschengeld 💰",
+      createdAt: payoutDate.toISOString(),
+    });
+    payoutDate = new Date(payoutDate.getTime() + 7 * MS_PER_DAY);
+    i++;
+  }
+
+  return entries;
+}
+
 export function calculateBalance(child: Child, transactions: Transaction[]): number {
   const now = new Date();
   const start = new Date(child.startDate);

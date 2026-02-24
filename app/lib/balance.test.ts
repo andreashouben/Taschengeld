@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { calculateBalance } from "./balance";
+import { calculateBalance, generateRateEntries } from "./balance";
 import type { Child, Transaction } from "~/db/schema";
 
 // Fixer Ankerpunkt: Montag, 08.01.2024
@@ -113,5 +113,58 @@ describe("calculateBalance()", () => {
     const child = makeChild({ startBalance: 0, weeklyRate: 0, startDate: "2024-01-08" });
     const transactions = [makeTransaction({ amount: -100 })];
     expect(calculateBalance(child, transactions)).toBe(-100);
+  });
+});
+
+describe("generateRateEntries()", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(MONDAY_JAN_08);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("gibt leeres Array zurück wenn kein Auszahlungstag erreicht wurde", () => {
+    // now = Mo 08.01., startDate = Mo 08.01. → daysToFirst = 7, daysDiff = 0
+    const child = makeChild({ startDate: "2024-01-08" });
+    expect(generateRateEntries(child)).toEqual([]);
+  });
+
+  it("gibt einen Eintrag zurück am ersten Auszahlungstag", () => {
+    // now = Mo 08.01., startDate = Mo 01.01. → erster Auszahlungstag = Mo 08.01.
+    const child = makeChild({ startDate: "2024-01-01", weeklyRate: 10 });
+    const entries = generateRateEntries(child);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].amount).toBe(10);
+    expect(entries[0].note).toBe("Taschengeld 💰");
+  });
+
+  it("gibt n Einträge zurück nach n Auszahlungstagen", () => {
+    // now = Mo 29.01. → 4 Montage seit 01.01.
+    vi.setSystemTime(new Date("2024-01-29T12:00:00Z"));
+    const child = makeChild({ startDate: "2024-01-01", weeklyRate: 5 });
+    const entries = generateRateEntries(child);
+    expect(entries).toHaveLength(4);
+    expect(entries.every((e) => e.amount === 5)).toBe(true);
+  });
+
+  it("createdAt entspricht dem tatsächlichen Auszahlungsdatum (nicht 'jetzt')", () => {
+    // now = Mo 15.01., startDate = Mo 01.01. → Einträge für 08.01. und 15.01.
+    vi.setSystemTime(new Date("2024-01-15T12:00:00Z"));
+    const child = makeChild({ startDate: "2024-01-01" });
+    const entries = generateRateEntries(child);
+    expect(entries).toHaveLength(2);
+    expect(entries[0].createdAt.startsWith("2024-01-08")).toBe(true);
+    expect(entries[1].createdAt.startsWith("2024-01-15")).toBe(true);
+  });
+
+  it("IDs sind eindeutig und als String formatiert", () => {
+    vi.setSystemTime(new Date("2024-01-15T12:00:00Z"));
+    const child = makeChild({ startDate: "2024-01-01" });
+    const entries = generateRateEntries(child);
+    expect(entries[0].id).toBe("rate-1");
+    expect(entries[1].id).toBe("rate-2");
   });
 });
