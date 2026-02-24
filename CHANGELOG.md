@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/andreashouben/Taschengeld/compare/v1.2.0...v1.2.1) (2026-02-24)
+
+
+### Bug Fixes
+
+* kid page now shows correct balance ([da26a4b](https://github.com/andreashouben/Taschengeld/commit/da26a4b1dba123c0789602a61ad332215e2c7011))
+
 # [1.2.0](https://github.com/andreashouben/Taschengeld/compare/v1.1.0...v1.2.0) (2026-02-24)
 
 
