@@ -12,12 +12,13 @@ export async function action({ request }: { request: Request; params: Record<str
   const weeklyRate = parseFloat(formData.get("weeklyRate") as string);
   const startBalance = parseFloat((formData.get("startBalance") as string) || "0");
   const startDate = formData.get("startDate") as string;
+  const payoutDay = parseInt(formData.get("payoutDay") as string, 10);
 
   if (!name) return Response.json({ error: "Name ist erforderlich" }, { status: 422 });
   if (isNaN(weeklyRate) || weeklyRate <= 0) return Response.json({ error: "Wochenrate muss größer als 0 sein" }, { status: 422 });
   if (!startDate) return Response.json({ error: "Startdatum ist erforderlich" }, { status: 422 });
 
-  db.insert(children).values({ name, weeklyRate, startBalance: isNaN(startBalance) ? 0 : startBalance, startDate }).run();
+  db.insert(children).values({ name, weeklyRate, startBalance: isNaN(startBalance) ? 0 : startBalance, startDate, payoutDay: isNaN(payoutDay) ? 1 : payoutDay }).run();
 
   return redirect("/");
 }
@@ -87,6 +88,18 @@ export default function KindNeu() {
                 defaultValue={today}
                 className={inputClass}
               />
+            </Field>
+
+            <Field label="Auszahlungstag" id="payoutDay">
+              <select id="payoutDay" name="payoutDay" defaultValue="1" className={inputClass}>
+                <option value="1">Montag</option>
+                <option value="2">Dienstag</option>
+                <option value="3">Mittwoch</option>
+                <option value="4">Donnerstag</option>
+                <option value="5">Freitag</option>
+                <option value="6">Samstag</option>
+                <option value="0">Sonntag</option>
+              </select>
             </Field>
 
             {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}

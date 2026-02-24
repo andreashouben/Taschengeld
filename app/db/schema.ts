@@ -6,6 +6,7 @@ export const children = sqliteTable("children", {
   weeklyRate: real("weekly_rate").notNull(),
   startDate: text("start_date").notNull(), // ISO date YYYY-MM-DD
   startBalance: real("start_balance").notNull().default(0),
+  payoutDay: integer("payout_day").notNull().default(1), // 0=So, 1=Mo, 2=Di, 3=Mi, 4=Do, 5=Fr, 6=Sa
 });
 
 export const transactions = sqliteTable("transactions", {

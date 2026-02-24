@@ -18,7 +18,8 @@ export function createTestDb() {
       name TEXT NOT NULL,
       weekly_rate REAL NOT NULL,
       start_date TEXT NOT NULL,
-      start_balance REAL NOT NULL DEFAULT 0
+      start_balance REAL NOT NULL DEFAULT 0,
+      payout_day INTEGER NOT NULL DEFAULT 1
     );
 
     CREATE TABLE IF NOT EXISTS transactions (

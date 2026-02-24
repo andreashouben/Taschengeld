@@ -12,7 +12,8 @@ sqlite.exec(`
     name TEXT NOT NULL,
     weekly_rate REAL NOT NULL,
     start_date TEXT NOT NULL,
-    start_balance REAL NOT NULL DEFAULT 0
+    start_balance REAL NOT NULL DEFAULT 0,
+    payout_day INTEGER NOT NULL DEFAULT 1
   );
 
   CREATE TABLE IF NOT EXISTS transactions (
@@ -23,3 +24,8 @@ sqlite.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `);
+
+// Migration: payout_day für bestehende Datenbanken ergänzen
+try {
+  sqlite.exec(`ALTER TABLE children ADD COLUMN payout_day INTEGER NOT NULL DEFAULT 1`);
+} catch { /* Spalte existiert bereits */ }
