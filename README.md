@@ -49,21 +49,92 @@ npm test
 
 ## Deployment (Homeserver)
 
-### Build erstellen
+### Docker Compose (empfohlen)
+
+Das ist der einfachste Weg zum Betrieb auf einem Homeserver.
+
+**1. Compose-Datei anlegen**
 
 ```bash
+cp docker-compose.example.yml docker-compose.yml
+```
+
+**2. Zugangsdaten setzen**
+
+`docker-compose.yml` öffnen und die Platzhalter ersetzen:
+
+```yaml
+environment:
+  ADMIN_PASSWORD: euer-passwort          # Eltern-Login
+  SESSION_SECRET: langer-zufaelliger-string  # mind. 32 Zeichen
+```
+
+Einen zufälligen `SESSION_SECRET` generieren:
+
+```bash
+openssl rand -base64 32
+```
+
+**3. Starten**
+
+```bash
+mkdir -p data   # Verzeichnis für die Datenbank
+docker compose up -d
+```
+
+Die App läuft jetzt auf Port 3000. Die Datenbank liegt persistent in `./data/database.sqlite`.
+
+**Updates einspielen**
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+**Logs ansehen**
+
+```bash
+docker compose logs -f
+```
+
+**Stoppen**
+
+```bash
+docker compose down
+```
+
+### Reverse Proxy
+
+Um die App unter einer eigenen Domain erreichbar zu machen, einen Reverse Proxy vorschalten. Beispiel für **Caddy**:
+
+```
+taschengeld.example.com {
+    reverse_proxy localhost:3000
+}
+```
+
+Oder **nginx**:
+
+```nginx
+server {
+    server_name taschengeld.example.com;
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+### Manueller Build (ohne Docker)
+
+```bash
+npm install
 npm run build
-npm start
+ADMIN_PASSWORD=xxx SESSION_SECRET=yyy npm start
 ```
 
-Der Server läuft standardmäßig auf Port 3000. Per Reverse Proxy (nginx, Caddy etc.) einbinden.
-
-### Docker
-
-```bash
-docker build -t taschengeld .
-docker run -p 3000:3000 --env-file .env taschengeld
-```
+Der Server läuft standardmäßig auf Port 3000.
 
 ## Projektstruktur
 
