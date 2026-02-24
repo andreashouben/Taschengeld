@@ -1,6 +1,6 @@
 services:
   taschengeld:
-    image: ghcr.io/ahouben/taschengeld:latest
+    image: ghcr.io/andreashouben/taschengeld:latest
     restart: unless-stopped
     ports:
       - "3000:3000"
