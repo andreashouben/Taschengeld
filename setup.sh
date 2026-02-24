@@ -6,13 +6,13 @@ echo ""
 
 # Eltern-Passwort abfragen
 while true; do
-  read -r -s -p "Eltern-Passwort festlegen: " ADMIN_PASSWORD
+  read -r -s -p "Eltern-Passwort festlegen: " ADMIN_PASSWORD </dev/tty
   echo ""
   if [ -z "$ADMIN_PASSWORD" ]; then
     echo "Fehler: Passwort darf nicht leer sein."
     continue
   fi
-  read -r -s -p "Passwort bestätigen: " ADMIN_PASSWORD_CONFIRM
+  read -r -s -p "Passwort bestätigen: " ADMIN_PASSWORD_CONFIRM </dev/tty
   echo ""
   if [ "$ADMIN_PASSWORD" = "$ADMIN_PASSWORD_CONFIRM" ]; then
     break
