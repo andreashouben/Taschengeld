@@ -6,8 +6,8 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      ADMIN_PASSWORD: change-me
-      SESSION_SECRET: change-me-to-a-long-random-string
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET}
       DATABASE_PATH: /data/database.sqlite
     volumes:
       - ./data:/data
