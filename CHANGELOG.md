@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/andreashouben/Taschengeld/compare/v1.1.0...v1.2.0) (2026-02-24)
+
+
+### Features
+
+* show weekly rates as transaction for more transparency ([b855aed](https://github.com/andreashouben/Taschengeld/commit/b855aed41ec2ec1992d7a3c81c47dfd1c721c1d5))
+
 # [1.1.0](https://github.com/andreashouben/Taschengeld/compare/v1.0.0...v1.1.0) (2026-02-24)
 
 
