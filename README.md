@@ -51,12 +51,10 @@ npm test
 
 ### Docker Compose (empfohlen)
 
-**1. Repo klonen und Setup-Script ausführen**
+**1. Setup-Script ausführen**
 
 ```bash
-git clone https://github.com/andreashouben/Taschengeld.git
-cd Taschengeld
-./setup.sh
+curl -fsSL https://raw.githubusercontent.com/andreashouben/Taschengeld/main/setup.sh | bash
 ```
 
 Das Script fragt nach dem Eltern-Passwort, generiert einen zufälligen `SESSION_SECRET` und legt `.env` sowie `docker-compose.yml` an.

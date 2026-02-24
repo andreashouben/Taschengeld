@@ -33,6 +33,10 @@ echo "✓ .env erstellt"
 
 # docker-compose.yml aus Vorlage kopieren (falls noch nicht vorhanden)
 if [ ! -f docker-compose.yml ]; then
+  if [ ! -f docker-compose.example.yml ]; then
+    curl -fsSL https://raw.githubusercontent.com/andreashouben/Taschengeld/main/docker-compose.example.yml \
+      -o docker-compose.example.yml
+  fi
   cp docker-compose.example.yml docker-compose.yml
   echo "✓ docker-compose.yml erstellt"
 else
