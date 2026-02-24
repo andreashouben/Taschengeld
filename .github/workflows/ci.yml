@@ -21,10 +21,40 @@ jobs:
       - run: npm ci
       - run: npm test
 
+  release:
+    name: Release
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      published: ${{ steps.semantic.outputs.new_release_published }}
+      version: ${{ steps.semantic.outputs.new_release_version }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # semantic-release braucht die volle Git-History
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: semantic-release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   docker:
     name: Docker Image
-    needs: test
-    # Nur bei Pushes auf main bauen, nicht bei PRs
+    needs: release
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
@@ -49,6 +79,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=sha,prefix=
+            ${{ needs.release.outputs.published == 'true' && format('type=raw,value={0}', needs.release.outputs.version) || '' }}
 
       - name: Build und Push
         uses: docker/build-push-action@v6
