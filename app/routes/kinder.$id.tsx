@@ -23,7 +23,7 @@ export async function loader({ params, request }: { params: { id: string }; requ
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  return Response.json({ child, transactions: allEntries, isParent: await isParent(request) });
+  return Response.json({ child, transactions: allEntries, childTransactions, isParent: await isParent(request) });
 }
 
 export async function action({ params, request }: { params: { id: string }; request: Request; context: unknown }) {
@@ -118,8 +118,8 @@ function TransactionForm({ intent, label }: { intent: "withdraw" | "deposit"; la
 }
 
 export default function KindDetail() {
-  const { child, transactions: txList, isParent } = useLoaderData<typeof loader>();
-  const balance = calculateBalance(child, txList);
+  const { child, transactions: txList, childTransactions, isParent } = useLoaderData<typeof loader>();
+  const balance = calculateBalance(child, childTransactions);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
