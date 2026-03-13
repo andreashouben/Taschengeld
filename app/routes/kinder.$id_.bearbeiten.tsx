@@ -4,6 +4,8 @@ import { requireParent } from "~/lib/auth";
 import { db } from "~/db/index";
 import { children } from "~/db/schema";
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
 export async function loader({ params, request }: { params: { id: string }; request: Request; context: unknown }) {
   const authRedirect = await requireParent(request);
   if (authRedirect) return authRedirect;
@@ -30,8 +32,28 @@ export async function action({ params, request }: { params: { id: string }; requ
   if (isNaN(weeklyRate) || weeklyRate <= 0) return Response.json({ error: "Wochenrate muss größer als 0 sein" }, { status: 422 });
   if (!startDate) return Response.json({ error: "Startdatum ist erforderlich" }, { status: 422 });
 
+  const existingChild = db.select().from(children).where(eq(children.id, id)).get();
+  if (!existingChild) return Response.json({ error: "Kind nicht gefunden" }, { status: 404 });
+
+  let finalStartBalance = isNaN(startBalance) ? 0 : startBalance;
+  let finalStartDate = startDate;
+
+  // Bei Taschengelderhöhung: bisherige Raten einfrieren, damit die neue Rate nicht rückwirkend gilt
+  if (existingChild.weeklyRate !== weeklyRate) {
+    const start = new Date(existingChild.startDate);
+    const now = new Date();
+    const daysDiff = Math.floor((now.getTime() - start.getTime()) / MS_PER_DAY);
+    let daysToFirst = (existingChild.payoutDay - start.getDay() + 7) % 7;
+    if (daysToFirst === 0) daysToFirst = 7;
+    const weeksElapsed = daysDiff >= daysToFirst ? 1 + Math.floor((daysDiff - daysToFirst) / 7) : 0;
+
+    // startBalance = bisher verdiente Raten (ohne manuelle Transaktionen, die bleiben erhalten)
+    finalStartBalance = existingChild.startBalance + weeksElapsed * existingChild.weeklyRate;
+    finalStartDate = new Date().toISOString().split("T")[0];
+  }
+
   db.update(children)
-    .set({ name, weeklyRate, startBalance: isNaN(startBalance) ? 0 : startBalance, startDate, payoutDay: isNaN(payoutDay) ? 1 : payoutDay })
+    .set({ name, weeklyRate, startBalance: finalStartBalance, startDate: finalStartDate, payoutDay: isNaN(payoutDay) ? 1 : payoutDay })
     .where(eq(children.id, id))
     .run();
 

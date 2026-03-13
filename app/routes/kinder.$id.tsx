@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Form, Link, useActionData, useLoaderData } from "react-router";
 import { isParent, requireParent } from "~/lib/auth";
 import { db } from "~/db/index";
@@ -67,6 +67,15 @@ export async function action({ params, request }: { params: { id: string }; requ
     return Response.json({ ok: true });
   }
 
+  if (intent === "deleteTransaction") {
+    const txId = parseInt(formData.get("txId") as string, 10);
+    if (isNaN(txId)) {
+      return Response.json({ error: "Ungültige Transaktions-ID" }, { status: 422 });
+    }
+    db.delete(transactions).where(and(eq(transactions.id, txId), eq(transactions.childId, id))).run();
+    return Response.json({ ok: true });
+  }
+
   return Response.json({ error: "Unbekannte Aktion" }, { status: 400 });
 }
 
@@ -94,7 +103,7 @@ function TransactionForm({ intent, label }: { intent: "withdraw" | "deposit"; la
             step="0.01"
             placeholder="Betrag in €"
             required
-            className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-400"
           />
         </div>
         <input
@@ -182,13 +191,28 @@ export default function KindDetail() {
                     <p className="text-sm text-gray-900 dark:text-white">{tx.note ?? (tx.amount < 0 ? "Abbuchung" : "Einzahlung")}</p>
                     <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(tx.createdAt)}</p>
                   </div>
-                  <span
-                    className={`text-sm font-semibold tabular-nums ${
-                      tx.amount >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                    }`}
-                  >
-                    {tx.amount >= 0 ? "+" : ""}{formatEuro(tx.amount)}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-sm font-semibold tabular-nums ${
+                        tx.amount >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                      }`}
+                    >
+                      {tx.amount >= 0 ? "+" : ""}{formatEuro(tx.amount)}
+                    </span>
+                    {isParent && typeof tx.id === "number" && (
+                      <Form method="post">
+                        <input type="hidden" name="intent" value="deleteTransaction" />
+                        <input type="hidden" name="txId" value={String(tx.id)} />
+                        <button
+                          type="submit"
+                          className="text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors text-lg leading-none"
+                          title="Buchung löschen"
+                        >
+                          ×
+                        </button>
+                      </Form>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
