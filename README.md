@@ -7,6 +7,8 @@ Einfaches Haushalt-Tool zum Verwalten von Taschengeld. Kinder können ihren Kont
 - Guthaben wird on-the-fly berechnet (Startguthaben + Wochenrate × vergangene Wochen − Abbuchungen + Einzahlungen) — kein Cron-Job nötig
 - Kinder können Kontostand und Transaktionshistorie ohne Login einsehen
 - Abbuchungen, Einzahlungen und Verwaltung sind per Passwort geschützt
+- Taschengelderhöhungen ohne Rückwirkung: bisherige Raten werden beim Ändern der Rate eingefroren
+- Fehlbuchungen können nachträglich gelöscht werden
 - SQLite-Datenbank — keine externe Infrastruktur nötig
 
 ## Stack
