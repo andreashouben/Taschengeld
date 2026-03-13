@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/andreashouben/Taschengeld/compare/v1.5.0...v1.6.0) (2026-03-13)
+
+
+### Features
+
+* Seitentitel und Sprache setzen ([1b8f765](https://github.com/andreashouben/Taschengeld/commit/1b8f765411287b03cd8f68abc2078f42db6adc53))
+
 # [1.5.0](https://github.com/andreashouben/Taschengeld/compare/v1.4.0...v1.5.0) (2026-03-13)
 
 
