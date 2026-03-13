@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/andreashouben/Taschengeld/compare/v1.3.2...v1.4.0) (2026-03-13)
+
+
+### Features
+
+* add money bag emoji favicon ([9df1f5e](https://github.com/andreashouben/Taschengeld/commit/9df1f5e178866af1044360a6a3d22a27e08b08e7))
+
 ## [1.3.2](https://github.com/andreashouben/Taschengeld/compare/v1.3.1...v1.3.2) (2026-03-13)
 
 
