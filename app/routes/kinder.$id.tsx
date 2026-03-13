@@ -100,29 +100,27 @@ function TransactionForm({ intent, label }: { intent: "withdraw" | "deposit"; la
   }, [actionData]);
 
   return (
-    <Form ref={formRef} method="post" className="space-y-3">
+    <Form ref={formRef} method="post" className="space-y-2">
       <input type="hidden" name="intent" value={intent} />
       <div className="flex gap-2">
-        <div className="flex-1">
-          <input
-            type="number"
-            name="amount"
-            min="0.01"
-            step="0.01"
-            placeholder="Betrag in €"
-            required
-            className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
-        </div>
+        <input
+          type="number"
+          name="amount"
+          min="0.01"
+          step="0.01"
+          placeholder="Betrag in €"
+          required
+          className="w-28 shrink-0 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-400"
+        />
         <input
           type="text"
           name="note"
           placeholder="Kommentar (optional)"
-          className="flex-[2] border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-400"
+          className="flex-1 min-w-0 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-400"
         />
         <button
           type="submit"
-          className={`px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-80 ${
+          className={`shrink-0 px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-80 ${
             intent === "withdraw" ? "bg-red-600" : "bg-green-600"
           }`}
         >
