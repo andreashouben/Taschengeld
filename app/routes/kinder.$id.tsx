@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { useEffect, useRef } from "react";
 import { Form, Link, useActionData, useLoaderData } from "react-router";
 import { isParent, requireParent } from "~/lib/auth";
 import { db } from "~/db/index";
@@ -90,9 +91,16 @@ function formatDate(iso: string) {
 function TransactionForm({ intent, label }: { intent: "withdraw" | "deposit"; label: string }) {
   const actionData = useActionData<typeof action>();
   const error = actionData && "error" in actionData ? actionData.error : null;
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (actionData && "ok" in actionData) {
+      formRef.current?.reset();
+    }
+  }, [actionData]);
 
   return (
-    <Form method="post" className="space-y-3">
+    <Form ref={formRef} method="post" className="space-y-3">
       <input type="hidden" name="intent" value={intent} />
       <div className="flex gap-2">
         <div className="flex-1">
