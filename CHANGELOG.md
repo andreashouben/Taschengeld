@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/andreashouben/Taschengeld/compare/v1.3.1...v1.3.2) (2026-03-13)
+
+
+### Bug Fixes
+
+* improve transaction form layout with fixed-width amount field ([a7d0ad3](https://github.com/andreashouben/Taschengeld/commit/a7d0ad3ac1902b904e27103e9c720e9a87428365))
+
 ## [1.3.1](https://github.com/andreashouben/Taschengeld/compare/v1.3.0...v1.3.1) (2026-03-13)
 
 
