@@ -139,6 +139,54 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
     });
   });
 
+  // --- createdAt Timestamp ---
+
+  describe("createdAt Timestamp", () => {
+    it("verwendet die aktuelle Uhrzeit zum Zeitpunkt des Inserts (nicht den Serverstart)", async () => {
+      vi.useFakeTimers();
+
+      try {
+        const T1 = new Date("2024-06-01T10:00:00.000Z");
+        const T2 = new Date("2024-06-01T10:05:00.000Z");
+
+        vi.setSystemTime(T1);
+        const { action } = await import("~/routes/kinder.$id");
+
+        const body1 = new FormData();
+        body1.set("intent", "deposit");
+        body1.set("amount", "5");
+        await action({
+          request: new Request(`http://localhost/kinder/${childId}`, { method: "POST", body: body1 }),
+          params: { id: String(childId) },
+          context: {},
+        });
+
+        vi.setSystemTime(T2);
+
+        const body2 = new FormData();
+        body2.set("intent", "deposit");
+        body2.set("amount", "3");
+        await action({
+          request: new Request(`http://localhost/kinder/${childId}`, { method: "POST", body: body2 }),
+          params: { id: String(childId) },
+          context: {},
+        });
+      } finally {
+        vi.useRealTimers();
+      }
+
+      const { db } = testDb;
+      const { transactions } = await import("~/db/schema");
+      const { eq } = await import("drizzle-orm");
+      const rows = db.select().from(transactions).where(eq(transactions.childId, childId)).all();
+
+      expect(rows).toHaveLength(2);
+      expect(rows[0].createdAt).not.toBe(rows[1].createdAt);
+      expect(rows[0].createdAt).toContain("2024-06-01T10:00");
+      expect(rows[1].createdAt).toContain("2024-06-01T10:05");
+    });
+  });
+
   // --- ACTION: Transaktion löschen ---
 
   describe("action() — Transaktion löschen", () => {

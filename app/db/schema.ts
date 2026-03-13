@@ -16,7 +16,7 @@ export const transactions = sqliteTable("transactions", {
     .references(() => children.id),
   amount: real("amount").notNull(), // positiv = Einzahlung, negativ = Abbuchung
   note: text("note"),
-  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
 export type Child = typeof children.$inferSelect;
