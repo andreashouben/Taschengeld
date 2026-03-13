@@ -192,14 +192,16 @@ export default function KindDetail() {
                     <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(tx.createdAt)}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span
-                      className={`text-sm font-semibold tabular-nums ${
-                        tx.amount >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                      }`}
-                    >
-                      {tx.amount >= 0 ? "+" : ""}{formatEuro(tx.amount)}
-                    </span>
-                    {isParent && typeof tx.id === "number" && (
+                    {tx.amount !== 0 && (
+                      <span
+                        className={`text-sm font-semibold tabular-nums ${
+                          tx.amount > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
+                        {tx.amount > 0 ? "+" : ""}{formatEuro(tx.amount)}
+                      </span>
+                    )}
+                    {isParent && typeof tx.id === "number" && tx.amount !== 0 && (
                       <Form method="post">
                         <input type="hidden" name="intent" value="deleteTransaction" />
                         <input type="hidden" name="txId" value={String(tx.id)} />

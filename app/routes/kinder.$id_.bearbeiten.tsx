@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { Form, Link, redirect, useActionData, useLoaderData } from "react-router";
 import { requireParent } from "~/lib/auth";
 import { db } from "~/db/index";
-import { children } from "~/db/schema";
+import { children, transactions } from "~/db/schema";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -50,6 +50,12 @@ export async function action({ params, request }: { params: { id: string }; requ
     // startBalance = bisher verdiente Raten (ohne manuelle Transaktionen, die bleiben erhalten)
     finalStartBalance = existingChild.startBalance + weeksElapsed * existingChild.weeklyRate;
     finalStartDate = new Date().toISOString().split("T")[0];
+
+    const fmt = (n: number) =>
+      new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
+    db.insert(transactions)
+      .values({ childId: id, amount: 0, note: `Taschengeld: ${fmt(existingChild.weeklyRate)} → ${fmt(weeklyRate)}` })
+      .run();
   }
 
   db.update(children)

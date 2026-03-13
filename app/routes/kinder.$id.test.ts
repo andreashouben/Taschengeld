@@ -139,6 +139,71 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
     });
   });
 
+  // --- ACTION: Transaktion löschen ---
+
+  describe("action() — Transaktion löschen", () => {
+    it("löscht eine vorhandene Transaktion", async () => {
+      const { db } = testDb;
+      const { transactions } = await import("~/db/schema");
+      const result = db.insert(transactions).values({ childId, amount: 5, note: "Test" }).run();
+      const txId = Number(result.lastInsertRowid);
+
+      const { action } = await import("~/routes/kinder.$id");
+      const body = new FormData();
+      body.set("intent", "deleteTransaction");
+      body.set("txId", String(txId));
+
+      const request = new Request(`http://localhost/kinder/${childId}`, { method: "POST", body });
+      const response = await action({ request, params: { id: String(childId) }, context: {} });
+      expect(response.status).toBe(200);
+
+      const { eq } = await import("drizzle-orm");
+      const rows = db.select().from(transactions).where(eq(transactions.childId, childId)).all();
+      expect(rows).toHaveLength(0);
+    });
+
+    it("gibt 422 bei nicht-numerischer txId zurück", async () => {
+      const { action } = await import("~/routes/kinder.$id");
+      const body = new FormData();
+      body.set("intent", "deleteTransaction");
+      body.set("txId", "abc");
+
+      const request = new Request(`http://localhost/kinder/${childId}`, { method: "POST", body });
+      const response = await action({ request, params: { id: String(childId) }, context: {} });
+      expect(response.status).toBe(422);
+    });
+
+    it("löscht keine Transaktion eines anderen Kindes", async () => {
+      const { db } = testDb;
+      const { children, transactions } = await import("~/db/schema");
+
+      const result2 = db
+        .insert(children)
+        .values({ name: "Max", weeklyRate: 5, startDate: daysAgo(7), startBalance: 0 })
+        .run();
+      const otherId = Number(result2.lastInsertRowid);
+
+      const txResult = db
+        .insert(transactions)
+        .values({ childId: otherId, amount: 10, note: "fremde Buchung" })
+        .run();
+      const txId = Number(txResult.lastInsertRowid);
+
+      const { action } = await import("~/routes/kinder.$id");
+      const body = new FormData();
+      body.set("intent", "deleteTransaction");
+      body.set("txId", String(txId));
+
+      // Versuche über childId die Transaktion von otherId zu löschen
+      const request = new Request(`http://localhost/kinder/${childId}`, { method: "POST", body });
+      await action({ request, params: { id: String(childId) }, context: {} });
+
+      const { eq } = await import("drizzle-orm");
+      const rows = db.select().from(transactions).where(eq(transactions.childId, otherId)).all();
+      expect(rows).toHaveLength(1); // Transaktion unberührt
+    });
+  });
+
   // --- ACTION: Einzahlung ---
 
   describe("action() — Einzahlung", () => {
