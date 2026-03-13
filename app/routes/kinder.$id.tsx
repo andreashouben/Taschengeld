@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { useEffect, useRef } from "react";
-import { Form, Link, useActionData, useLoaderData } from "react-router";
+import { Form, Link, useActionData, useLoaderData, useFetcher } from "react-router";
+import { DeleteButton } from "~/components/DeleteButton";
 import { isParent, requireParent } from "~/lib/auth";
 import { db } from "~/db/index";
 import { children, transactions } from "~/db/schema";
@@ -132,6 +133,17 @@ function TransactionForm({ intent, label }: { intent: "withdraw" | "deposit"; la
   );
 }
 
+function DeleteTransactionButton({ txId }: { txId: number }) {
+  const fetcher = useFetcher();
+  return (
+    <DeleteButton
+      onConfirm={() =>
+        fetcher.submit({ intent: "deleteTransaction", txId: String(txId) }, { method: "post" })
+      }
+    />
+  );
+}
+
 export default function KindDetail() {
   const { child, transactions: txList, childTransactions, isParent } = useLoaderData<typeof loader>();
   const balance = calculateBalance(child, childTransactions);
@@ -208,17 +220,7 @@ export default function KindDetail() {
                       </span>
                     )}
                     {isParent && typeof tx.id === "number" && tx.amount !== 0 && (
-                      <Form method="post">
-                        <input type="hidden" name="intent" value="deleteTransaction" />
-                        <input type="hidden" name="txId" value={String(tx.id)} />
-                        <button
-                          type="submit"
-                          className="text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors text-lg leading-none"
-                          title="Buchung löschen"
-                        >
-                          ×
-                        </button>
-                      </Form>
+                      <DeleteTransactionButton txId={tx.id} />
                     )}
                   </div>
                 </li>
