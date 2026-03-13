@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/andreashouben/Taschengeld/compare/v1.4.0...v1.5.0) (2026-03-13)
+
+
+### Features
+
+* zwei-stufige Löschbestätigung mit Trash-Icon ([5e72ed6](https://github.com/andreashouben/Taschengeld/commit/5e72ed61a3dfba12eb91daae9144bb69782e21b7))
+
 # [1.4.0](https://github.com/andreashouben/Taschengeld/compare/v1.3.2...v1.4.0) (2026-03-13)
 
 
