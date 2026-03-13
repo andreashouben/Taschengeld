@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/andreashouben/Taschengeld/compare/v1.3.0...v1.3.1) (2026-03-13)
+
+
+### Bug Fixes
+
+* reset transaction form after successful submit ([95afc77](https://github.com/andreashouben/Taschengeld/commit/95afc770177795386adc351b9a4056399e3e55e3))
+
 # [1.3.0](https://github.com/andreashouben/Taschengeld/compare/v1.2.1...v1.3.0) (2026-03-13)
 
 
