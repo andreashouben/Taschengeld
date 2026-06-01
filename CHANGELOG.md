@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/andreashouben/Taschengeld/compare/v1.6.0...v1.7.0) (2026-06-01)
+
+
+### Features
+
+* set token maxAge to 90 days ([9982a3d](https://github.com/andreashouben/Taschengeld/commit/9982a3dd47d39bf81dbead773721093f35885c5f))
+
 # [1.6.0](https://github.com/andreashouben/Taschengeld/compare/v1.5.0...v1.6.0) (2026-03-13)
 
 
