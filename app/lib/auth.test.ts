@@ -13,9 +13,9 @@ describe("requireParent()", () => {
     const { requireParent } = await import("~/lib/auth");
     const request = new Request("http://localhost/kinder/1", { method: "POST" });
     const result = await requireParent(request);
-    expect(result).toBeDefined();
-    expect(result.status).toBe(302);
-    expect(result.headers.get("Location")).toBe("/login");
+    expect(result).not.toBeNull();
+    expect(result!.status).toBe(302);
+    expect(result!.headers.get("Location")).toBe("/login");
   });
 
   it("gibt null zurück wenn Session gültig ist", async () => {
