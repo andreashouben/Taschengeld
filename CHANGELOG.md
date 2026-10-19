@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/andreashouben/Taschengeld/compare/v1.7.0...v1.8.0) (2026-10-19)
+
+
+### Features
+
+* Überziehung des Kontos mit Bestätigungsdialog erlauben ([af053a7](https://github.com/andreashouben/Taschengeld/commit/af053a767dab35fd1a5a522545facf0aafb82fa7))
+
 # [1.7.0](https://github.com/andreashouben/Taschengeld/compare/v1.6.0...v1.7.0) (2026-06-01)
 
 
