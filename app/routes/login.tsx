@@ -1,4 +1,4 @@
-import { Form, redirect, useActionData } from "react-router";
+import { data, Form, redirect, useActionData } from "react-router";
 import { createParentSession } from "~/lib/auth";
 
 export async function action({ request }: { request: Request; params: Record<string, string>; context: unknown }) {
@@ -6,7 +6,7 @@ export async function action({ request }: { request: Request; params: Record<str
   const password = formData.get("password") as string;
 
   if (!password || password !== process.env.ADMIN_PASSWORD) {
-    return Response.json({ error: "Falsches Passwort" }, { status: 401 });
+    return data({ error: "Falsches Passwort" }, { status: 401 });
   }
 
   const cookie = await createParentSession("/");

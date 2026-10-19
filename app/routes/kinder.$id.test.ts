@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { unwrap } from "~/lib/test-utils";
 import { createTestDb, daysAgo } from "~/lib/test-db";
 
 vi.stubEnv("ADMIN_PASSWORD", "testpass");
@@ -46,8 +47,8 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
 
       const { loader } = await import("~/routes/kinder.$id");
       const request = new Request(`http://localhost/kinder/${childId}`);
-      const response = await loader({ request, params: { id: String(childId) }, context: {} });
-      const data = await response.json();
+      const response = await unwrap(await loader({ request, params: { id: String(childId) }, context: {} }));
+      const data = response.body;
 
       expect(data.child.name).toBe("Lena");
       // Neueste zuerst — manuelle Transaktionen sind aktueller als synthetische Rate-Einträge
@@ -60,8 +61,9 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
     it("wirft 404 bei unbekannter id", async () => {
       const { loader } = await import("~/routes/kinder.$id");
       const request = new Request("http://localhost/kinder/9999");
-      const response = await loader({ request, params: { id: "9999" }, context: {} });
-      expect(response.status).toBe(404);
+      await expect(loader({ request, params: { id: "9999" }, context: {} })).rejects.toMatchObject({
+        init: { status: 404 },
+      });
     });
   });
 
@@ -78,7 +80,7 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
         method: "POST",
         body,
       });
-      const response = await action({ request, params: { id: String(childId) }, context: {} });
+      const response = await unwrap(await action({ request, params: { id: String(childId) }, context: {} }));
       expect(response.status).toBe(200);
 
       const { db } = testDb;
@@ -120,7 +122,7 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
         method: "POST",
         body,
       });
-      const response = await action({ request, params: { id: String(childId) }, context: {} });
+      const response = await unwrap(await action({ request, params: { id: String(childId) }, context: {} }));
       expect(response.status).toBe(409);
       const { transactions } = await import("~/db/schema");
       expect(testDb.db.select().from(transactions).all()).toHaveLength(0);
@@ -134,7 +136,7 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
       body.set("confirmOverdraft", "true");
 
       const request = new Request(`http://localhost/kinder/${childId}`, { method: "POST", body });
-      const response = await action({ request, params: { id: String(childId) }, context: {} });
+      const response = await unwrap(await action({ request, params: { id: String(childId) }, context: {} }));
       expect(response.status).toBe(200);
       const { transactions } = await import("~/db/schema");
       const rows = testDb.db.select().from(transactions).all();
@@ -152,7 +154,7 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
         method: "POST",
         body,
       });
-      const response = await action({ request, params: { id: String(childId) }, context: {} });
+      const response = await unwrap(await action({ request, params: { id: String(childId) }, context: {} }));
       expect(response.status).toBe(422);
     });
   });
@@ -220,7 +222,7 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
       body.set("txId", String(txId));
 
       const request = new Request(`http://localhost/kinder/${childId}`, { method: "POST", body });
-      const response = await action({ request, params: { id: String(childId) }, context: {} });
+      const response = await unwrap(await action({ request, params: { id: String(childId) }, context: {} }));
       expect(response.status).toBe(200);
 
       const { eq } = await import("drizzle-orm");
@@ -235,7 +237,7 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
       body.set("txId", "abc");
 
       const request = new Request(`http://localhost/kinder/${childId}`, { method: "POST", body });
-      const response = await action({ request, params: { id: String(childId) }, context: {} });
+      const response = await unwrap(await action({ request, params: { id: String(childId) }, context: {} }));
       expect(response.status).toBe(422);
     });
 
@@ -283,7 +285,7 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
         method: "POST",
         body,
       });
-      const response = await action({ request, params: { id: String(childId) }, context: {} });
+      const response = await unwrap(await action({ request, params: { id: String(childId) }, context: {} }));
       expect(response.status).toBe(200);
 
       const { db } = testDb;
@@ -323,7 +325,7 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
         method: "POST",
         body,
       });
-      const response = await action({ request, params: { id: String(childId) }, context: {} });
+      const response = await unwrap(await action({ request, params: { id: String(childId) }, context: {} }));
       expect(response.status).toBe(422);
     });
   });
@@ -340,7 +342,7 @@ describe("Kinder-Detail Route — Auth-Schutz", () => {
     body.set("amount", "5");
 
     const request = new Request("http://localhost/kinder/1", { method: "POST", body });
-    const response = await action({ request, params: { id: "1" }, context: {} });
+    const response = await unwrap(await action({ request, params: { id: "1" }, context: {} }));
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toBe("/login");

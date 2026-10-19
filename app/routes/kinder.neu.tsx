@@ -1,4 +1,4 @@
-import { Form, Link, redirect, useActionData } from "react-router";
+import { data, Form, Link, redirect, useActionData } from "react-router";
 import { requireParent } from "~/lib/auth";
 import { db } from "~/db/index";
 import { children } from "~/db/schema";
@@ -14,9 +14,9 @@ export async function action({ request }: { request: Request; params: Record<str
   const startDate = formData.get("startDate") as string;
   const payoutDay = parseInt(formData.get("payoutDay") as string, 10);
 
-  if (!name) return Response.json({ error: "Name ist erforderlich" }, { status: 422 });
-  if (isNaN(weeklyRate) || weeklyRate <= 0) return Response.json({ error: "Wochenrate muss größer als 0 sein" }, { status: 422 });
-  if (!startDate) return Response.json({ error: "Startdatum ist erforderlich" }, { status: 422 });
+  if (!name) return data({ error: "Name ist erforderlich" }, { status: 422 });
+  if (isNaN(weeklyRate) || weeklyRate <= 0) return data({ error: "Wochenrate muss größer als 0 sein" }, { status: 422 });
+  if (!startDate) return data({ error: "Startdatum ist erforderlich" }, { status: 422 });
 
   db.insert(children).values({ name, weeklyRate, startBalance: isNaN(startBalance) ? 0 : startBalance, startDate, payoutDay: isNaN(payoutDay) ? 1 : payoutDay }).run();
 

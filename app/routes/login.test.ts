@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { unwrap } from "~/lib/test-utils";
 
 vi.stubEnv("ADMIN_PASSWORD", "geheim123");
 vi.stubEnv("SESSION_SECRET", "test-secret");
@@ -14,7 +15,7 @@ describe("Login Action", () => {
     body.set("password", "geheim123");
 
     const request = new Request("http://localhost/login", { method: "POST", body });
-    const response = await action({ request, params: {}, context: {} });
+    const response = await unwrap(await action({ request, params: {}, context: {} }));
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toBe("/");
@@ -27,10 +28,10 @@ describe("Login Action", () => {
     body.set("password", "falsch");
 
     const request = new Request("http://localhost/login", { method: "POST", body });
-    const response = await action({ request, params: {}, context: {} });
+    const response = await unwrap(await action({ request, params: {}, context: {} }));
 
     expect(response.status).toBe(401);
-    const data = await response.json();
+    const data = response.body;
     expect(data.error).toBeDefined();
   });
 
@@ -40,7 +41,7 @@ describe("Login Action", () => {
     body.set("password", "");
 
     const request = new Request("http://localhost/login", { method: "POST", body });
-    const response = await action({ request, params: {}, context: {} });
+    const response = await unwrap(await action({ request, params: {}, context: {} }));
 
     expect(response.status).toBe(401);
   });

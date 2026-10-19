@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { unwrap } from "~/lib/test-utils";
 import { createTestDb, daysAgo } from "~/lib/test-db";
 
 describe("Dashboard Loader (_index)", () => {
@@ -21,8 +22,8 @@ describe("Dashboard Loader (_index)", () => {
 
     const { loader } = await import("~/routes/_index");
     const request = new Request("http://localhost/");
-    const response = await loader({ request, params: {}, context: {} });
-    const data = await response.json();
+    const response = await unwrap(await loader({ request, params: {}, context: {} }));
+    const data = response.body;
 
     expect(data.children).toHaveLength(2);
     expect(data.children.map((c: { name: string }) => c.name)).toEqual(["Anna", "Ben"]);
@@ -38,8 +39,8 @@ describe("Dashboard Loader (_index)", () => {
 
     const { loader } = await import("~/routes/_index");
     const request = new Request("http://localhost/");
-    const response = await loader({ request, params: {}, context: {} });
-    const data = await response.json();
+    const response = await unwrap(await loader({ request, params: {}, context: {} }));
+    const data = response.body;
 
     // 5 startBalance + 1 Woche × 10 = 15
     expect(data.children[0].balance).toBe(15);

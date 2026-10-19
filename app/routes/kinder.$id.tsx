@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { useEffect, useRef, useState } from "react";
-import { Form, Link, useActionData, useLoaderData, useFetcher, useSubmit } from "react-router";
+import { data, Form, Link, useActionData, useLoaderData, useFetcher, useSubmit } from "react-router";
 import { DeleteButton } from "~/components/DeleteButton";
 import { isParent, requireParent } from "~/lib/auth";
 import { db } from "~/db/index";
@@ -12,7 +12,7 @@ export async function loader({ params, request }: { params: { id: string }; requ
   const child = db.select().from(children).where(eq(children.id, id)).get();
 
   if (!child) {
-    return Response.json({ error: "Kind nicht gefunden" }, { status: 404 });
+    throw data("Kind nicht gefunden", { status: 404 });
   }
 
   const childTransactions = db
@@ -25,7 +25,7 @@ export async function loader({ params, request }: { params: { id: string }; requ
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  return Response.json({ child, transactions: allEntries, childTransactions, isParent: await isParent(request) });
+  return { child, transactions: allEntries, childTransactions, isParent: await isParent(request) };
 }
 
 export async function action({ params, request }: { params: { id: string }; request: Request; context: unknown }) {
@@ -41,12 +41,12 @@ export async function action({ params, request }: { params: { id: string }; requ
 
   if (intent === "withdraw") {
     if (isNaN(amount) || amount <= 0) {
-      return Response.json({ error: "Betrag muss größer als 0 sein" }, { status: 422 });
+      return data({ error: "Betrag muss größer als 0 sein" }, { status: 422 });
     }
 
     const child = db.select().from(children).where(eq(children.id, id)).get();
     if (!child) {
-      return Response.json({ error: "Kind nicht gefunden" }, { status: 404 });
+      return data({ error: "Kind nicht gefunden" }, { status: 404 });
     }
 
     const childTransactions = db.select().from(transactions).where(eq(transactions.childId, id)).all();
@@ -54,32 +54,32 @@ export async function action({ params, request }: { params: { id: string }; requ
 
     // Überziehung ist erlaubt, muss aber ausdrücklich bestätigt werden
     if (amount > balance && formData.get("confirmOverdraft") !== "true") {
-      return Response.json({ error: "Überziehung muss bestätigt werden", needsConfirmation: true }, { status: 409 });
+      return data({ error: "Überziehung muss bestätigt werden", needsConfirmation: true }, { status: 409 });
     }
 
     db.insert(transactions).values({ childId: id, amount: -amount, note }).run();
-    return Response.json({ ok: true });
+    return { ok: true };
   }
 
   if (intent === "deposit") {
     if (isNaN(amount) || amount <= 0) {
-      return Response.json({ error: "Betrag muss größer als 0 sein" }, { status: 422 });
+      return data({ error: "Betrag muss größer als 0 sein" }, { status: 422 });
     }
 
     db.insert(transactions).values({ childId: id, amount, note }).run();
-    return Response.json({ ok: true });
+    return { ok: true };
   }
 
   if (intent === "deleteTransaction") {
     const txId = parseInt(formData.get("txId") as string, 10);
     if (isNaN(txId)) {
-      return Response.json({ error: "Ungültige Transaktions-ID" }, { status: 422 });
+      return data({ error: "Ungültige Transaktions-ID" }, { status: 422 });
     }
     db.delete(transactions).where(and(eq(transactions.id, txId), eq(transactions.childId, id))).run();
-    return Response.json({ ok: true });
+    return { ok: true };
   }
 
-  return Response.json({ error: "Unbekannte Aktion" }, { status: 400 });
+  return data({ error: "Unbekannte Aktion" }, { status: 400 });
 }
 
 function formatEuro(amount: number) {

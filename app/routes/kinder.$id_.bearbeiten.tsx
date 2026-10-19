@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { Form, Link, redirect, useActionData, useLoaderData } from "react-router";
+import { data, Form, Link, redirect, useActionData, useLoaderData } from "react-router";
 import { requireParent } from "~/lib/auth";
 import { db } from "~/db/index";
 import { children, transactions } from "~/db/schema";
@@ -12,8 +12,8 @@ export async function loader({ params, request }: { params: { id: string }; requ
 
   const id = Number(params.id);
   const child = db.select().from(children).where(eq(children.id, id)).get();
-  if (!child) return Response.json({ error: "Kind nicht gefunden" }, { status: 404 });
-  return Response.json({ child });
+  if (!child) throw data("Kind nicht gefunden", { status: 404 });
+  return { child };
 }
 
 export async function action({ params, request }: { params: { id: string }; request: Request; context: unknown }) {
@@ -28,12 +28,12 @@ export async function action({ params, request }: { params: { id: string }; requ
   const startDate = formData.get("startDate") as string;
   const payoutDay = parseInt(formData.get("payoutDay") as string, 10);
 
-  if (!name) return Response.json({ error: "Name ist erforderlich" }, { status: 422 });
-  if (isNaN(weeklyRate) || weeklyRate <= 0) return Response.json({ error: "Wochenrate muss größer als 0 sein" }, { status: 422 });
-  if (!startDate) return Response.json({ error: "Startdatum ist erforderlich" }, { status: 422 });
+  if (!name) return data({ error: "Name ist erforderlich" }, { status: 422 });
+  if (isNaN(weeklyRate) || weeklyRate <= 0) return data({ error: "Wochenrate muss größer als 0 sein" }, { status: 422 });
+  if (!startDate) return data({ error: "Startdatum ist erforderlich" }, { status: 422 });
 
   const existingChild = db.select().from(children).where(eq(children.id, id)).get();
-  if (!existingChild) return Response.json({ error: "Kind nicht gefunden" }, { status: 404 });
+  if (!existingChild) return data({ error: "Kind nicht gefunden" }, { status: 404 });
 
   let finalStartBalance = isNaN(startBalance) ? 0 : startBalance;
   let finalStartDate = startDate;

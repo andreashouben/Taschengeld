@@ -16,7 +16,7 @@ export async function loader({ request }: { request: Request; params: Record<str
     ),
   }));
 
-  return Response.json({ children: childrenWithBalance, isParent: await isParent(request) });
+  return { children: childrenWithBalance, isParent: await isParent(request) };
 }
 
 function formatEuro(amount: number) {
