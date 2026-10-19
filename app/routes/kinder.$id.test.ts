@@ -109,7 +109,7 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
       expect(rows[0].note).toBe("Minecraft");
     });
 
-    it("schlägt fehl wenn Abbuchung das Guthaben übersteigt", async () => {
+    it("verlangt Bestätigung wenn Abbuchung das Guthaben übersteigt", async () => {
       // Lena hat 2 Wochen × 10€ = 20€
       const { action } = await import("~/routes/kinder.$id");
       const body = new FormData();
@@ -121,7 +121,25 @@ describe("Kinder-Detail Route (kinder.$id)", () => {
         body,
       });
       const response = await action({ request, params: { id: String(childId) }, context: {} });
-      expect(response.status).toBe(422);
+      expect(response.status).toBe(409);
+      const { transactions } = await import("~/db/schema");
+      expect(testDb.db.select().from(transactions).all()).toHaveLength(0);
+    });
+
+    it("erlaubt Überziehung mit confirmOverdraft", async () => {
+      const { action } = await import("~/routes/kinder.$id");
+      const body = new FormData();
+      body.set("intent", "withdraw");
+      body.set("amount", "25");
+      body.set("confirmOverdraft", "true");
+
+      const request = new Request(`http://localhost/kinder/${childId}`, { method: "POST", body });
+      const response = await action({ request, params: { id: String(childId) }, context: {} });
+      expect(response.status).toBe(200);
+      const { transactions } = await import("~/db/schema");
+      const rows = testDb.db.select().from(transactions).all();
+      expect(rows).toHaveLength(1);
+      expect(rows[0].amount).toBe(-25);
     });
 
     it("schlägt fehl bei amount ≤ 0", async () => {

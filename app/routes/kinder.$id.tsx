@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { useEffect, useRef } from "react";
-import { Form, Link, useActionData, useLoaderData, useFetcher } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { Form, Link, useActionData, useLoaderData, useFetcher, useSubmit } from "react-router";
 import { DeleteButton } from "~/components/DeleteButton";
 import { isParent, requireParent } from "~/lib/auth";
 import { db } from "~/db/index";
@@ -52,8 +52,9 @@ export async function action({ params, request }: { params: { id: string }; requ
     const childTransactions = db.select().from(transactions).where(eq(transactions.childId, id)).all();
     const balance = calculateBalance(child, childTransactions);
 
-    if (amount > balance) {
-      return Response.json({ error: "Nicht genug Guthaben" }, { status: 422 });
+    // Überziehung ist erlaubt, muss aber ausdrücklich bestätigt werden
+    if (amount > balance && formData.get("confirmOverdraft") !== "true") {
+      return Response.json({ error: "Überziehung muss bestätigt werden", needsConfirmation: true }, { status: 409 });
     }
 
     db.insert(transactions).values({ childId: id, amount: -amount, note }).run();
@@ -89,7 +90,9 @@ function formatDate(iso: string) {
   return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 }
 
-function TransactionForm({ intent, label }: { intent: "withdraw" | "deposit"; label: string }) {
+function TransactionForm({ intent, label, balance }: { intent: "withdraw" | "deposit"; label: string; balance?: number }) {
+  const submit = useSubmit();
+  const [overdraft, setOverdraft] = useState<{ amount: number; newBalance: number } | null>(null);
   const actionData = useActionData<typeof action>();
   const error = actionData && "error" in actionData ? actionData.error : null;
   const formRef = useRef<HTMLFormElement>(null);
@@ -100,8 +103,44 @@ function TransactionForm({ intent, label }: { intent: "withdraw" | "deposit"; la
     }
   }, [actionData]);
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    if (intent !== "withdraw" || balance === undefined) return;
+    const amount = parseFloat(new FormData(e.currentTarget).get("amount") as string);
+    if (!isNaN(amount) && amount > balance) {
+      e.preventDefault();
+      setOverdraft({ amount, newBalance: balance - amount });
+    }
+  }
+
+  function confirmOverdraft() {
+    if (!formRef.current) return;
+    const data = new FormData(formRef.current);
+    data.set("confirmOverdraft", "true");
+    setOverdraft(null);
+    submit(data, { method: "post" });
+  }
+
   return (
-    <Form ref={formRef} method="post" className="space-y-2">
+    <Form ref={formRef} method="post" onSubmit={handleSubmit} className="space-y-2">
+      {overdraft && (
+        <div role="alertdialog" aria-modal="true" aria-labelledby="overdraft-title" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 space-y-4">
+            <h2 id="overdraft-title" className="text-lg font-semibold text-gray-900 dark:text-white">Konto überziehen?</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Die Abbuchung von {formatEuro(overdraft.amount)} übersteigt das Guthaben. Der neue Kontostand wäre{" "}
+              <span className="font-semibold text-red-600 dark:text-red-400">{formatEuro(overdraft.newBalance)}</span>.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setOverdraft(null)} className="px-4 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                Abbrechen
+              </button>
+              <button type="button" onClick={confirmOverdraft} className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:opacity-80">
+                Trotzdem überziehen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <input type="hidden" name="intent" value={intent} />
       <div className="flex gap-2">
         <input
@@ -185,7 +224,7 @@ export default function KindDetail() {
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 px-5 py-4 space-y-4">
             <div>
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Abbuchung</p>
-              <TransactionForm intent="withdraw" label="Abbuchen" />
+              <TransactionForm intent="withdraw" label="Abbuchen" balance={balance} />
             </div>
             <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Einzahlung</p>
